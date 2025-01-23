@@ -1,0 +1,31 @@
+uber-go/
+├── cmd/
+│   └── main.go
+├── internal/
+│   ├── config/
+│   │   └── config.go
+│   ├── domain/
+│   │   ├── driver.go
+│   │   ├── passenger.go
+│   │   ├── location.go
+│   │   ├── ride.go
+│   │   └── car.go
+│   ├── handler/
+│   │   ├── passenger_handler.go
+│   │   ├── driver_handler.go
+│   │   └── ride_handler.go
+│   ├── repository/
+│   │   ├── passenger_repository.go
+│   │   ├── driver_repository.go
+│   │   └── ride_repository.go
+│   └── service/
+│       ├── passenger_service.go
+│       ├── driver_service.go
+│       └── ride_service.go
+└── utils/
+    └── uuid.go│   
+├── migrations/
+│   └── 001_create_tables.sql
+├── go.mod
+├── go.sum
+└── .env

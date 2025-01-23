@@ -17,7 +17,6 @@ func NewPassengerHandler(passengerService *service.PassengerService) *PassengerH
 
 func (h *PassengerHandler) CreatePassenger(c *gin.Context) {
 	var req struct {
-		ID        string  `json:"id"`
 		Name      string  `json:"name"`
 		Latitude  float64 `json:"latitude"`
 		Longitude float64 `json:"longitude"`
@@ -28,7 +27,7 @@ func (h *PassengerHandler) CreatePassenger(c *gin.Context) {
 		return
 	}
 
-	passenger, err := h.passengerService.CreatePassenger(req.ID, req.Name, req.Latitude, req.Longitude)
+	passenger, err := h.passengerService.CreatePassenger(req.Name, req.Latitude, req.Longitude)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

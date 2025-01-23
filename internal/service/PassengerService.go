@@ -13,8 +13,11 @@ func NewPassengerService(repo *repository.PassengerRepository) *PassengerService
 	return &PassengerService{repo: repo}
 }
 
-func (s *PassengerService) CreatePassenger(id, name string, latitude, longitude float64) (*domain.Passenger, error) {
-	passenger := domain.NewPassenger(id, name, latitude, longitude)
+func (s *PassengerService) CreatePassenger(name string, latitude, longitude float64) (*domain.Passenger, error) {
+	passenger := &domain.Passenger{
+		Name:     name,
+		Location: domain.NewLocation(latitude, longitude),
+	}
 	if err := s.repo.Save(passenger); err != nil {
 		return nil, err
 	}

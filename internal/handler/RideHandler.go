@@ -18,7 +18,6 @@ func NewRideHandler(rideService *service.RideService) *RideHandler {
 func (h *RideHandler) RequestRide(c *gin.Context) {
 	var req struct {
 		PassengerID string `json:"passenger_id"`
-		DriverID    string `json:"driver_id"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -26,16 +25,33 @@ func (h *RideHandler) RequestRide(c *gin.Context) {
 		return
 	}
 
-	ride, err := h.rideService.RequestRide(req.PassengerID, req.DriverID)
+	ride, err := h.rideService.RequestRide(req.PassengerID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Ride started successfully",
-		"ride":    ride,
-	})
+	c.JSON(http.StatusCreated, ride)
+}
+
+func (h *RideHandler) AcceptRide(c *gin.Context) {
+	var req struct {
+		RideID   string `json:"ride_id"`
+		DriverID string `json:"driver_id"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ride, err := h.rideService.AcceptRide(req.RideID, req.DriverID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, ride)
 }
 
 func (h *RideHandler) EndRide(c *gin.Context) {
@@ -54,10 +70,7 @@ func (h *RideHandler) EndRide(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Ride ended successfully",
-		"ride":    ride,
-	})
+	c.JSON(http.StatusOK, ride)
 }
 
 func (h *RideHandler) CancelRide(c *gin.Context) {
@@ -76,8 +89,5 @@ func (h *RideHandler) CancelRide(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Ride canceled successfully",
-		"ride":    ride,
-	})
+	c.JSON(http.StatusOK, ride)
 }

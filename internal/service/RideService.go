@@ -21,10 +21,26 @@ func NewRideService(passengerService *PassengerService, driverService *DriverSer
 	}
 }
 
-func (s *RideService) RequestRide(passengerID, driverID string) (*domain.Ride, error) {
-	_, err := s.passengerService.GetPassenger(passengerID)
+func (s *RideService) RequestRide(passengerID string) (*domain.Ride, error) {
+	passenger, err := s.passengerService.GetPassenger(passengerID)
 	if err != nil {
 		return nil, errors.New("passenger not found")
+	}
+
+	ride := &domain.Ride{
+		PassengerID: passenger.ID,
+		Status:      domain.RideStatusRequested,
+	}
+	if err := s.rideRepo.Save(ride); err != nil {
+		return nil, err
+	}
+	return ride, nil
+}
+
+func (s *RideService) AcceptRide(rideID, driverID string) (*domain.Ride, error) {
+	ride, err := s.rideRepo.FindByID(rideID)
+	if err != nil {
+		return nil, errors.New("ride not found")
 	}
 
 	driver, err := s.driverService.GetDriver(driverID)
@@ -32,22 +48,17 @@ func (s *RideService) RequestRide(passengerID, driverID string) (*domain.Ride, e
 		return nil, errors.New("driver not found")
 	}
 
-	if !driver.IsAvailable() {
+	if !driver.Available {
 		return nil, errors.New("driver is not available")
 	}
 
-	// Create a new ride
-	ride := domain.NewRide(generateID(), passengerID, driverID)
+	ride.DriverID = driver.ID
+	ride.Status = domain.RideStatusInProgress
+	driver.Available = false
 
-	// Start the ride
-	ride.Start()
-	driver.StartRide()
-
-	// Save the ride
-	if err := s.rideRepo.Save(ride); err != nil {
+	if err := s.rideRepo.Update(ride); err != nil {
 		return nil, err
 	}
-
 	return ride, nil
 }
 
@@ -62,15 +73,12 @@ func (s *RideService) EndRide(rideID string) (*domain.Ride, error) {
 		return nil, errors.New("driver not found")
 	}
 
-	// End the ride
-	ride.End()
-	driver.EndRide()
+	ride.Status = domain.RideStatusCompleted
+	driver.Available = true
 
-	// Update the ride in the repository
 	if err := s.rideRepo.Update(ride); err != nil {
 		return nil, err
 	}
-
 	return ride, nil
 }
 
@@ -80,24 +88,18 @@ func (s *RideService) CancelRide(rideID string) (*domain.Ride, error) {
 		return nil, errors.New("ride not found")
 	}
 
-	driver, err := s.driverService.GetDriver(ride.DriverID)
-	if err != nil {
-		return nil, errors.New("driver not found")
+	if ride.DriverID != "" {
+		driver, err := s.driverService.GetDriver(ride.DriverID)
+		if err != nil {
+			return nil, errors.New("driver not found")
+		}
+		driver.Available = true
 	}
 
-	// Cancel the ride
-	ride.Cancel()
-	driver.EndRide() // Mark the driver as available again
+	ride.Status = domain.RideStatusCanceled
 
-	// Update the ride in the repository
 	if err := s.rideRepo.Update(ride); err != nil {
 		return nil, err
 	}
-
 	return ride, nil
-}
-
-func generateID() string {
-	// Implement ID generation logic (e.g., UUID)
-	return "ride-id"
 }

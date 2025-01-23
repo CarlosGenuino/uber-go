@@ -1,9 +1,9 @@
 package domain
 
 type Car struct {
-	Make  string
-	Model string
-	Year  int
+	Make  string `db:"car_make"`
+	Model string `db:"car_model"`
+	Year  int    `db:"car_year"`
 }
 
 func NewCar(make, model string, year int) Car {
