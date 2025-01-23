@@ -4,11 +4,11 @@ FROM golang:1.23-alpine AS builder
 # Define o diretório de trabalho
 WORKDIR /app
 
-# Baixa as dependências
-RUN go mod download
-
 # Copia o código fonte para o contêiner
 COPY . .
+
+# Baixa as dependências
+RUN go mod download
 
 # Compila a aplicação
 RUN go build -o uber-go ./cmd/main.go
